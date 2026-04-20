@@ -55,7 +55,7 @@ const VisionScanner = () => {
 
       const base64Image = canvas.toDataURL('image/jpeg', 0.5);
 
-      const response = await fetch('https://accessibility-agent-146x.onrender.com/api/ai/vision', {
+      const response = await fetch('http://localhost:8000/api/ai/vision', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image_base64: base64Image })

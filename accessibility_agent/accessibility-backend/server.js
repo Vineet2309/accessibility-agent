@@ -40,7 +40,7 @@ app.post('/api/health-chat', async (req, res) => {
         const { message } = req.body;
         
         // Forward the request to Python FastAPI
-        const pythonResponse = await fetch('https://accessibility-agent-146x.onrender.com/api/ai/health', {
+        const pythonResponse = await fetch('http://localhost:8000/api/ai/health', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message })
@@ -61,7 +61,7 @@ app.post('/api/analyze-image', async (req, res) => {
         const { imageBase64 } = req.body;
         
         // Forward the Base64 string to Python FastAPI
-        const pythonResponse = await fetch('https://accessibility-agent-146x.onrender.com/api/ai/vision', {
+        const pythonResponse = await fetch('http://localhost:8000/api/ai/vision', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ image_base64: imageBase64 })

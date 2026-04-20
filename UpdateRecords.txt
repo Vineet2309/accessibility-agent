@@ -1,0 +1,1 @@
+Currently we don't need to use accessibility-backend, we directly hit to the fast api from the frontend, but in future when we add login/signin and databases like thing to it, we will transfer all request from backend nodejs file

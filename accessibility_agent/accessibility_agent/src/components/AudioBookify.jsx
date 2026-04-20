@@ -75,7 +75,7 @@ const AudioBookify = () => {
     setIsPlaying(false);
 
     try {
-      const response = await fetch('https://accessibility-agent-146x.onrender.com/api/ai/summarize', {
+      const response = await fetch('http://localhost:8000/api/ai/summarize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: inputText })

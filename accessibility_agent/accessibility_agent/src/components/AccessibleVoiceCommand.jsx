@@ -78,7 +78,7 @@ const AccessibleVoiceCommand = () => {
     speak("Let me think about that..."); 
     
     try {
-      const response = await fetch('https://accessibility-agent-146x.onrender.com/api/ai/voiceCommand', {
+      const response = await fetch('http://localhost:8000/api/ai/voiceCommand', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: command })

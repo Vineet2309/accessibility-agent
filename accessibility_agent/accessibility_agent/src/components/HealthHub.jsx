@@ -78,7 +78,7 @@ const HealthHub = () => {
 
     try {
       // 3. Hit the Python FastAPI backend directly
-      const response = await fetch('https://accessibility-agent-146x.onrender.com/api/ai/health', {
+      const response = await fetch('http://localhost:8000/api/ai/health', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userText })
