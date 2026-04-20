@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Adding a base high-contrast theme suitable for accessibility */
+body {
+  @apply bg-gray-900 text-gray-50 antialiased;
+}
