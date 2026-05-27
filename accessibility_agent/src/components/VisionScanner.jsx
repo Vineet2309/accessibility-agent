@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Camera, Eye, Power, Activity, BrainCircuit, Play, Pause, Square } from 'lucide-react';
+
 export default function VisionScanner() {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -10,12 +11,13 @@ export default function VisionScanner() {
   const [trackingBox, setTrackingBox] = useState([]);
   const [connectionStatus, setConnectionStatus] = useState("Offline");
   
-  // NEW: AI Description States
+  // AI Description States
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [sceneDescription, setSceneDescription] = useState("Awaiting deep scan trigger...");
 
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+
   // 1. Toggle Real-Time Stream ON / OFF
   const toggleStream = async () => {
     if (isStreaming) {
@@ -38,8 +40,8 @@ export default function VisionScanner() {
       
       if (videoRef.current) videoRef.current.srcObject = stream;
 
-      // Connect to Python FastAPI WebSockets route for FAST tracking
-      wsRef.current = new WebSocket("ws://localhost:8000/ws/vision");
+      // UPDATE 1: Connect to live Render WebSocket route using wss://
+      wsRef.current = new WebSocket("wss://accessibility-agent-146x.onrender.com/ws/vision");
 
       wsRef.current.onopen = () => {
         setConnectionStatus("Live");
@@ -63,9 +65,8 @@ export default function VisionScanner() {
     }
   };
 
- // 2. NEW: Deep AI Scene Analysis (With Clean Voice Output)
-
- const toggleSpeech = () => {
+  // --- AUDIO CONTROLS ---
+  const toggleSpeech = () => {
     if ('speechSynthesis' in window) {
       if (window.speechSynthesis.paused) {
         window.speechSynthesis.resume();
@@ -82,6 +83,8 @@ export default function VisionScanner() {
       setIsPaused(false);
     }
   };
+
+  // 2. Deep AI Scene Analysis
   const triggerDeepScan = async () => {
     if (!canvasRef.current || !isStreaming) return;
     
@@ -93,7 +96,8 @@ export default function VisionScanner() {
       ctx.drawImage(videoRef.current, 0, 0, 640, 480);
       const base64Frame = canvasRef.current.toDataURL('image/jpeg', 0.9);
       
-      const response = await fetch("http://localhost:8000/api/ai/vision", {
+      // UPDATE 2: Connect to live Render API route using https://
+      const response = await fetch("https://accessibility-agent-146x.onrender.com/api/ai/vision", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
@@ -105,17 +109,17 @@ export default function VisionScanner() {
       const data = await response.json();
       const finalAnalysis = data.analysis || "No readable data found in environment.";
       
-      // 1. Update the UI text (Leave the markdown intact for visual users if you want)
+      // Update the UI text
       setSceneDescription(finalAnalysis);
 
-      // 2. SANITIZE THE TEXT FOR THE AUDIO ENGINE
+      // SANITIZE THE TEXT FOR THE AUDIO ENGINE
       const cleanTextForSpeech = finalAnalysis
-        .replace(/[#_*~`]/g, '') // Removes hashes, asterisks, underscores, and tildes
-        .replace(/-/g, '')       // Removes dashes (bullet points)
-        .replace(/\n+/g, '. ')   // Turns line breaks into periods so the voice pauses naturally
+        .replace(/[#_*~`]/g, '') 
+        .replace(/-/g, '')       
+        .replace(/\n+/g, '. ')   
         .trim();
 
-      // 3. SPEAK THE CLEANED TEXT
+      // SPEAK THE CLEANED TEXT
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel(); // Stop anything currently playing
         
@@ -123,7 +127,6 @@ export default function VisionScanner() {
         utterance.rate = 1.05; 
         utterance.pitch = 1.0;
 
-        // TELL REACT WHAT THE AUDIO ENGINE IS DOING
         utterance.onstart = () => { setIsSpeaking(true); setIsPaused(false); };
         utterance.onend = () => { setIsSpeaking(false); setIsPaused(false); };
         utterance.onpause = () => setIsPaused(true);
@@ -143,6 +146,7 @@ export default function VisionScanner() {
       setIsAnalyzing(false);
     }
   };
+
   // 3. The Transmission Loop (FAST Loop for OpenCV)
   useEffect(() => {
     let intervalId;
@@ -151,7 +155,7 @@ export default function VisionScanner() {
         if (videoRef.current && canvasRef.current && wsRef.current.readyState === WebSocket.OPEN) {
           const ctx = canvasRef.current.getContext('2d');
           ctx.drawImage(videoRef.current, 0, 0, 640, 480);
-          const base64Frame = canvasRef.current.toDataURL('image/jpeg', 0.5); // Lower quality for fast drawing
+          const base64Frame = canvasRef.current.toDataURL('image/jpeg', 0.5); 
           wsRef.current.send(base64Frame);
         }
       }, 1000); 
@@ -183,7 +187,6 @@ export default function VisionScanner() {
             {isStreaming ? "Terminate" : "Initialize"}
           </button>
 
-          {/* NEW: Deep Scan Button */}
           <button 
             onClick={triggerDeepScan}
             disabled={!isStreaming || isAnalyzing}
@@ -224,7 +227,7 @@ export default function VisionScanner() {
           <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover scale-x-[-1]" />
           <canvas ref={canvasRef} width="640" height="480" className="hidden" />
 
-          {/* Real-time bounding tracking box render overlay layer */}
+          {/* Real-time bounding tracking box */}
           {trackingBox.map((box, index) => (
             <div 
               key={index}
@@ -236,7 +239,6 @@ export default function VisionScanner() {
                 height: `${(box.height / 480) * 100}%`
               }}
             >
-              {/* THIS IS THE IMPORTANT PART FOR THE LABEL */}
               <div className="absolute -top-6 left-0 bg-cyan-900/80 text-cyan-300 text-[11px] font-bold uppercase px-2 py-0.5 border border-cyan-500/50 backdrop-blur-sm whitespace-nowrap">
                 {box.label ? box.label : `Target: ${index + 1}`}
               </div>
@@ -251,7 +253,7 @@ export default function VisionScanner() {
           )}
         </div>
 
-       {/* NEW: AI Output Readout Panel */}
+        {/* AI Output Readout Panel */}
         <div className="flex-1 bg-gray-900/40 border border-gray-800 rounded-2xl p-5 flex flex-col relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 via-purple-500 to-cyan-500"></div>
           
