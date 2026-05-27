@@ -6,3 +6,7 @@ requests
 langchain-huggingface
 langchain-core
 huggingface-hub
+google-generativeai
+pillow
+opencv-python-headless
+numpy
